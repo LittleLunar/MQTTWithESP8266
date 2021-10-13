@@ -20,8 +20,8 @@ const char* pass = MY_WIFI_PASS;
 String buf[10];
 int buf_index = -1;
 
-WiFiClient client;
-PubSubClient mqtt(client);
+WiFiClient espClient;
+PubSubClient client(espClient);
 
 void callback(char* topic, byte* payload, int length) 
 {
@@ -39,14 +39,14 @@ void callback(char* topic, byte* payload, int length)
 }
 void reconnect() {
   
-  while ( !mqtt.connected() ) 
+  while ( !client.connected() ) 
   {
     Serial.println("Reconnecting...");
     
-    if( mqtt.connect(mqtt_name, mqtt_user, mqtt_password) ) 
+    if( client.connect(mqtt_name, mqtt_user, mqtt_password) ) 
     {
       Serial.println("\nConnected...");
-      mqtt.subscribe(SUBSCRIBE_TOPIC);
+      client.subscribe(SUBSCRIBE_TOPIC);
     } 
     else 
     {
@@ -76,18 +76,18 @@ void setup()
   Serial.print("IP Address : ");
   Serial.println(WiFi.localIP());
 
-  mqtt.setServer(mqtt_server, mqtt_port);
-  mqtt.setCallback(callback);
+  client.setServer(mqtt_server, mqtt_port);
+  client.setCallback(callback);
 
 }
 
 void loop() 
 {
   // put your main code here, to run repeatedly:
-  if( !mqtt.connected() )
+  if( !client.connected() )
     reconnect();
 
-  if( mqtt.connected() ) 
+  if( client.connected() ) 
   {
     
     if ( buf_index > -1 ) 
@@ -96,9 +96,9 @@ void loop()
       char msg[len + 1];
       buf[0].toCharArray(msg, len);
       
-      if( mqtt.connected() ) 
+      if( client.connected() ) 
       {
-        mqtt.publish(PUBLISH_TOPIC, msg);
+        client.publish(PUBLISH_TOPIC, msg);
         Serial.println("Send : " + (String)msg);
         buf_index--;
       }
